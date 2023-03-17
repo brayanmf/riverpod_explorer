@@ -43,7 +43,8 @@ class StateProviderPage extends ConsumerWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                ref.invalidate(valueStateProvider);
+                ref.invalidate(
+                    valueStateProvider); //invalidate hace que se vuelva a llamar el builder
               },
               child: const Text('Invalidate'),
             ),

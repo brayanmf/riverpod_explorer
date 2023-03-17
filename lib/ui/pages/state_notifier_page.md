@@ -1,21 +1,65 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_explorer/ui/models/product.dart';
-import 'package:riverpod_explorer/ui/pages/data/cart_state_notifier.dart';
+## StateNotifier
 
-class StateNotifierProviderPage extends ConsumerWidget {
-  const StateNotifierProviderPage({
-    super.key,
-    required this.color,
-  });
+> StateNotifierProvider es un provider que se usa para escuchar y exponer un StateNotifier (del paquete state_notifier, que Riverpod reexporta).
+junto con StateNotifier es la solución recomendada por Riverpod para administrar el estado que puede cambiar en reacción a una interacción del usuario.StateNotifierProvider
 
-  final Color color;
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cart = ref.watch(cartStateNotifierProvider);
-    return Scaffold(
-      appBar: AppBar(
+Normalmente se utiliza para:
+
+- exponer un estado inmutable que puede cambiar con el tiempo después de reaccionar a eventos personalizados.
+- centralizar la lógica para modificar algún estado (también conocido como "business logic") en un solo lugar, mejorando la capacidad de mantenimiento con el tiempo.
+
+ejemplo de un carrito.
+```
+final cartStateNotifierProvider =
+    StateNotifierProvider.autoDispose<CartStateNotifier, List<Product>>((ref) {
+  return CartStateNotifier();
+});
+
+class CartStateNotifier extends StateNotifier<List<Product>> {
+  CartStateNotifier() : super([]);
+
+  void addProduct(Product product) {
+    state = [...state, product];
+  }
+
+  void clearCart() {
+    state = [];
+  }
+}
+
+```
+y en el widget 
+    `final cart = ref.watch(cartStateNotifierProvider);`
+
+en nuestro list builder
+
+```
+  child: ListView.builder(
+              itemCount: productList.length,
+              itemBuilder: (context, index) {
+                final product = productList[index];
+                return ListTile(
+                  title: Text(product.title),
+                  subtitle: Text('\$${product.price}'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.add_shopping_cart),
+                    onPressed: () {
+                      // Add the product to the cart  
+                      ref
+                          .read(cartStateNotifierProvider.notifier)
+                          .addProduct(product);
+                    },
+                  ),
+                );
+              },
+            )
+
+```
+
+```
+
+AppBar(
         backgroundColor: color,
         title: const Text('ChangeNotifier Provider'),
         actions: [
@@ -86,32 +130,4 @@ class StateNotifierProviderPage extends ConsumerWidget {
           ]),
         ],
       ),
-      body: Column(
-        children: [
-          // A list of products and a button to add to cart
-          Expanded(
-            child: ListView.builder(
-              itemCount: productList.length,
-              itemBuilder: (context, index) {
-                final product = productList[index];
-                return ListTile(
-                  title: Text(product.title),
-                  subtitle: Text('\$${product.price}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.add_shopping_cart),
-                    onPressed: () {
-                      // Add the product to the cart
-                      ref
-                          .read(cartStateNotifierProvider.notifier)
-                          .addProduct(product);
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+```
